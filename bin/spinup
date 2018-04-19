@@ -1,0 +1,61 @@
+#!/usr/bin/env ruby
+# encoding: utf-8
+
+# A script that handles some base actions for spinning up a wiki.
+# Modules TODO:
+# - story management
+# - base categories
+# - hiding maintenance categories
+# - adding myself to Template:Admins
+# - Setting MediaWiki:Pagetitle and MediaWiki:Pagetitle-view-mainpage on official wikis
+# - Moving "How to play guide for Default Loadout" to "How to play guide for Game Name"
+# - Setting forward on interwiki prefix
+# - Checking gphelp interwiki prefix is correct (forward and transclude set, uses HTTPS)
+# - Adding to wikis.txt
+#
+# Usage: `spinup <wiki name> [options]`
+# Options:
+# -o to handle specific changes and checks for official wikis
+# --skip to skip certain modules, see below for a list of modules. Format: --skip=module1,module2,module3 Module
+# names cannot have spaces in them. Separate them by comma.
+
+require 'dotenv'
+require 'mediawiki/butt'
+require_relative '../lib/wiki_manager'
+require_relative '../lib/butt_extensions'
+
+Dotenv.load
+using ButtExtensions
+
+# @param str [String] The string to strip HTML from.
+# @return [String] Removes <p>...\n</p> from the provided string. This is, for some reason that I am unsure of,
+# provided by the return value of the parse API for {{Gamename}} and {{SITENAME}}.
+def strip_html(str)
+  str
+  .sub('<p>', '')
+  .sub('</p>', '')
+  .sub("\n", '')
+end
+
+@mw = MediaWiki::Butt.new("https://#{ARGV[0]}.gamepedia.com/api.php")
+@mw.login(ENV['WIKI_USERNAME'], ENV['WIKI_PASSWORD'])
+
+@is_official = ARGV.include?('-o')
+@gamename = strip_html(@mw.parse_text('{{Gamename}}'))
+@sitename = strip_html(@mw.parse_text('{{SITENAME}}'))
+
+class ActionModule
+  attr_reader :name
+  def initialize(name, mw)
+    @name = name
+    @mw = mw
+  end
+end
+
+ALL_MODULES = []
+
+skip = ARGV.find { |opt| opt.start_with?('--skip=') }
+skips = skip ? skip.sub('--skip=', '').split(',') : []
+@modules = ALL_MODULES.delete_if { |mod| skips.include?(mod.name) }
+
+@modules.each { |mod| mod.execute }
