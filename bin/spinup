@@ -4,7 +4,6 @@
 # A script that handles some base actions for spinning up a wiki.
 # Modules TODO:
 # - story management
-# - base categories
 # - hiding maintenance categories
 # - adding myself to Template:Admins
 # - Setting MediaWiki:Pagetitle and MediaWiki:Pagetitle-view-mainpage on official wikis
@@ -52,7 +51,17 @@ class ActionModule
   end
 end
 
-ALL_MODULES = []
+class BaseCategoriesModule < ActionModule
+  def execute
+    @mw.create_page("Category:#{@gamename}", '[[Category:Contents]]')
+    @mw.create_page("Category:#{@sitename}", '[[Category:Contents]]')
+    @mw.create_page('Category:Contents', 'This is the root category.')
+  end
+end
+
+ALL_MODULES = [
+BaseCategoriesModule.new('basecategories', @mw)
+]
 
 skip = ARGV.find { |opt| opt.start_with?('--skip=') }
 skips = skip ? skip.sub('--skip=', '').split(',') : []
