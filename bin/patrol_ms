@@ -1,0 +1,41 @@
+#!/usr/bin/env ruby
+# encoding: utf-8
+
+# A script that patrols all of the Maintenance script's edits, since they are not automatically patrolled.
+# Saves the last successful patrol to a local file because it is executing hundreds of actions and sometimes the wiki
+# dies.
+
+require 'mediawiki/butt'
+require 'dotenv'
+require_relative '../lib/butt_extensions'
+
+LAST_FILE = 'tmp/patrol_ms_last.txt'
+
+Dotenv.load
+using ButtExtensions
+
+@mw = MediaWiki::Butt.new("https://#{ARGV[0]}.gamepedia.com/api.php")
+@mw.login(ENV['WIKI_USERNAME'], ENV['WIKI_PASSWORD'])
+
+@last_success = ''
+unless ARGV[1] == 'clean'
+  @last_success = File.read(LAST_FILE).chomp
+end
+
+begin
+  contribs = @mw.get_recent_changes
+  contribs.sort_by! { |contrib| contrib[:revid] }
+  contribs.each do |contrib|
+    next if @last_success != '' && contrib[:revid] < @last_success.to_i
+    puts "Patrolling #{contrib[:title]}"
+    patrol = @mw.patrol(revid: contrib[:revid])
+    if patrol['error']
+      puts "#{patrol['error']['code']}: #{patrol['error']['info']}"
+    else
+      @last_success = contrib[:revid]
+    end
+    puts ''
+  end
+ensure
+  File.write(LAST_FILE, @last_success)
+end
