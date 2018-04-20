@@ -38,8 +38,8 @@ end
 @mw.login(ENV['WIKI_USERNAME'], ENV['WIKI_PASSWORD'])
 
 @is_official = ARGV.include?('-o')
-@gamename = strip_html(@mw.parse_text('{{Gamename}}'))
-@sitename = strip_html(@mw.parse_text('{{SITENAME}}'))
+GAMENAME = strip_html(@mw.parse_text('{{Gamename}}'))
+SITENAME = strip_html(@mw.parse_text('{{SITENAME}}'))
 
 class ActionModule
   attr_reader :name
@@ -55,8 +55,8 @@ end
 
 class BaseCategoriesModule < ActionModule
   def execute
-    @mw.create_page("Category:#{@gamename}", '[[Category:Contents]]')
-    @mw.create_page("Category:#{@sitename}", '[[Category:Contents]]')
+    @mw.create_page("Category:#{GAMENAME}", '[[Category:Contents]]')
+    @mw.create_page("Category:#{SITENAME}", '[[Category:Contents]]')
     @mw.create_page('Category:Contents', 'This is the root category.')
   end
 end
