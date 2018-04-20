@@ -104,4 +104,8 @@ skip = ARGV.find { |opt| opt.start_with?('--skip=') }
 skips = skip ? skip.sub('--skip=', '').split(',') : []
 @modules = ALL_MODULES.delete_if { |mod| skips.include?(mod.name) }
 
-@modules.each { |mod| mod.execute }
+@modules.each do |mod|
+  puts "Executing #{mod.name}"
+  mod.execute
+  puts "Finished #{mod.name}"
+end
