@@ -4,13 +4,13 @@
 # A script that handles some base actions for spinning up a wiki.
 # Modules TODO:
 # - story management
-# - hiding maintenance categories
 # - adding myself to Template:Admins
 # - Setting MediaWiki:Pagetitle and MediaWiki:Pagetitle-view-mainpage on official wikis
 # - Moving "How to play guide for Default Loadout" to "How to play guide for Game Name"
 # - Setting forward on interwiki prefix
 # - Checking gphelp interwiki prefix is correct (forward and transclude set, uses HTTPS)
 # - Adding to wikis.txt
+# - protecting legal notices
 #
 # Usage: `spinup <wiki name> [options]`
 # Options:
@@ -59,8 +59,33 @@ class BaseCategoriesModule < ActionModule
   end
 end
 
+class HideMaintenanceCategories < ActionModule
+  CATEGORIES = [
+    'Candidates for deletion',
+    'Candidates for speedy deletion',
+    'Citation needed',
+    'Cleanup',
+    'Images needing improvement',
+    'Pages to be merged',
+    'Pages to be moved',
+    'Pages with broken file links',
+    'Stubs',
+    'Unattributed files'
+  ]
+
+  def execute
+    CATEGORIES.each do |category|
+      title = "Category:#{category}"
+      text = @mw.get_text(title)
+      text << "\n__HIDDENCAT__"
+      @mw.edit(title, text, summary: 'Hiding category.')
+    end
+  end
+end
+
 ALL_MODULES = [
-BaseCategoriesModule.new('basecategories', @mw)
+  BaseCategoriesModule.new('basecategories', @mw),
+  HideMaintenanceCategories.new('maintenancecats', @mw)
 ]
 
 skip = ARGV.find { |opt| opt.start_with?('--skip=') }
