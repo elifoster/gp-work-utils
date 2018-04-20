@@ -44,14 +44,13 @@ end
 
 class ActionModule
   attr_reader :name
-  def initialize(name, mw, official = false)
+  def initialize(name, mw)
     @name = name
     @mw = mw
-    @official = official
   end
 
   def official_only?
-    @official
+    false
   end
 end
 
