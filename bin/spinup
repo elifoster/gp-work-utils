@@ -4,7 +4,6 @@
 # A script that handles some base actions for spinning up a wiki.
 # Modules TODO:
 # - story management
-# - Setting MediaWiki:Pagetitle and MediaWiki:Pagetitle-view-mainpage on official wikis
 # - Moving "How to play guide for Default Loadout" to "How to play guide for Game Name"
 # - Setting forward on interwiki prefix
 # - Checking gphelp interwiki prefix is correct (forward and transclude set, uses HTTPS)
@@ -98,10 +97,25 @@ class AddSelfToAdminsList < ActionModule
   end
 end
 
+class Pagetitles < ActionModule
+  def is_official?
+    true
+  end
+
+  SUMMARY = 'Setting to official.'
+  SITENAME = 'Official {{SITENAME}}'
+
+  def execute
+    @mw.create_page('MediaWiki:Pagetitle', "$1 - #{SITENAME}", summary: SUMMARY)
+    @mw.create_page('MediaWiki:Pagetitle-view-mainpage', SITENAME, summary: SUMMARY)
+  end
+end
+
 ALL_MODULES = [
   BaseCategoriesModule.new('basecategories', @mw),
   HideMaintenanceCategories.new('maintenancecats', @mw),
-  AddSelfToAdminsList.new('adminslist', @mw)
+  AddSelfToAdminsList.new('adminslist', @mw),
+  Pagetitles.new('pagetitles', @mw)
 ]
 
 skip = ARGV.find { |opt| opt.start_with?('--skip=') }
