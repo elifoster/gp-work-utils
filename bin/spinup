@@ -4,7 +4,6 @@
 # A script that handles some base actions for spinning up a wiki.
 # Modules TODO:
 # - story management
-# - Moving "How to play guide for Default Loadout" to "How to play guide for Game Name"
 # - Setting forward on interwiki prefix
 # - Checking gphelp interwiki prefix is correct (forward and transclude set, uses HTTPS)
 # - Adding to wikis.txt
@@ -111,11 +110,18 @@ class Pagetitles < ActionModule
   end
 end
 
+class MoveHowToPlay < ActionModule
+  def execute
+    @mw.move('How to play guide for Default Loadout', "How to play guide for #{GAMENAME}", suppress_redirect: true )
+  end
+end
+
 ALL_MODULES = [
   BaseCategoriesModule.new('basecategories', @mw),
   HideMaintenanceCategories.new('maintenancecats', @mw),
   AddSelfToAdminsList.new('adminslist', @mw),
-  Pagetitles.new('pagetitles', @mw)
+  Pagetitles.new('pagetitles', @mw),
+  MoveHowToPlay.new('howtoplay', @mw)
 ]
 
 skip = ARGV.find { |opt| opt.start_with?('--skip=') }
