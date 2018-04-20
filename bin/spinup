@@ -44,9 +44,14 @@ end
 
 class ActionModule
   attr_reader :name
-  def initialize(name, mw)
+  def initialize(name, mw, official = false)
     @name = name
     @mw = mw
+    @official = official
+  end
+
+  def official_only?
+    @official
   end
 end
 
@@ -102,7 +107,7 @@ ALL_MODULES = [
 
 skip = ARGV.find { |opt| opt.start_with?('--skip=') }
 skips = skip ? skip.sub('--skip=', '').split(',') : []
-@modules = ALL_MODULES.delete_if { |mod| skips.include?(mod.name) }
+@modules = ALL_MODULES.delete_if { |mod| skips.include?(mod.name) || (!@is_official && mod.official_only?) }
 
 @modules.each do |mod|
   puts "Executing #{mod.name}"
