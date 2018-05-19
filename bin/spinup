@@ -1,19 +1,27 @@
 #!/usr/bin/env ruby
 # encoding: utf-8
 
-# A script that handles some base actions for spinning up a wiki.
 # Modules TODO:
 # - story management
-# - Setting forward on interwiki prefix
+# - Setting forward on mw interwiki prefix
 # - Checking gphelp interwiki prefix is correct (forward and transclude set, uses HTTPS)
 # - Adding to wikis.txt
 # - protecting legal notices
-#
-# Usage: `spinup <wiki name> [options]`
-# Options:
-# -o to handle specific changes and checks for official wikis
-# --skip to skip certain modules, see below for a list of modules. Format: --skip=module1,module2,module3 Module
-# names cannot have spaces in them. Separate them by comma.
+
+DOCS = <<EOS
+A script that handles some base actions for spinning up a wiki.
+
+Usage: `spinup <wiki name> [options]`
+  Options:
+    -o to handle specific changes and checks for official wikis
+    --skip to skip certain modules, see below for a list of modules. Format: --skip=module1,module2,module3 Module
+      names cannot have spaces in them. Separate them by comma.
+EOS
+
+if ARGV.size.zero? || ARGV[0] == 'help'
+  print DOCS
+  exit
+end
 
 require 'dotenv'
 require 'mediawiki/butt'
