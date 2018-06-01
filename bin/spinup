@@ -29,6 +29,13 @@ require 'dotenv'
 require 'mediawiki/butt'
 require_relative '../lib/wiki_manager'
 require_relative '../lib/butt_extensions'
+require_relative '../lib/spinup/action_module'
+
+require_relative '../lib/spinup/action_modules/add_self_to_admins_list'
+require_relative '../lib/spinup/action_modules/base_categories'
+require_relative '../lib/spinup/action_modules/hide_maintenance_categories'
+require_relative '../lib/spinup/action_modules/move_how_to_play'
+require_relative '../lib/spinup/action_modules/pagetitles'
 
 Dotenv.load
 using ButtExtensions
@@ -50,84 +57,8 @@ end
 GAMENAME = strip_html(@mw.parse_text('{{Gamename}}'))
 SITENAME = strip_html(@mw.parse_text('{{SITENAME}}'))
 
-class ActionModule
-  attr_reader :name
-  def initialize(name, mw)
-    @name = name
-    @mw = mw
-  end
-
-  def official_only?
-    false
-  end
-end
-
-class BaseCategoriesModule < ActionModule
-  def execute
-    @mw.create_page("Category:#{GAMENAME}", '[[Category:Contents]]')
-    @mw.create_page("Category:#{SITENAME}", '[[Category:Contents]]')
-    @mw.create_page('Category:Contents', 'This is the root category.')
-  end
-end
-
-class HideMaintenanceCategories < ActionModule
-  CATEGORIES = [
-    'Candidates for deletion',
-    'Candidates for speedy deletion',
-    'Citation needed',
-    'Cleanup',
-    'Images needing improvement',
-    'Pages to be merged',
-    'Pages to be moved',
-    'Pages with broken file links',
-    'Stubs',
-    'Unattributed files'
-  ]
-
-  def execute
-    CATEGORIES.each do |category|
-      title = "Category:#{category}"
-      text = @mw.get_text(title)
-      text << "\n__HIDDENCAT__"
-      @mw.edit(title, text, summary: 'Hiding category.')
-    end
-  end
-end
-
-class AddSelfToAdminsList < ActionModule
-  def execute
-    admins_list = @mw.get_text('Template:Admins')
-    @mw.edit('Template:Admins',
-             admins_list.split("\n")
-                        .delete_if { |line| line.include?('delete this line during spin up') }
-                        .join("\n")
-                        .sub('<!--{{Wiki admin|Game Widow}}-->', '{{Wiki admin|TheSatanicSanta}}'),
-             summary: 'Replacing curse admin with TheSatanicSanta.')
-  end
-end
-
-class Pagetitles < ActionModule
-  def official_only?
-    true
-  end
-
-  SUMMARY = 'Setting to official.'
-  SITENAME = 'Official {{SITENAME}}'
-
-  def execute
-    @mw.create_page('MediaWiki:Pagetitle', "$1 - #{SITENAME}", summary: SUMMARY)
-    @mw.create_page('MediaWiki:Pagetitle-view-mainpage', SITENAME, summary: SUMMARY)
-  end
-end
-
-class MoveHowToPlay < ActionModule
-  def execute
-    @mw.move('How to play guide for Default Loadout', "How to play guide for #{GAMENAME}", suppress_redirect: true )
-  end
-end
-
 ALL_MODULES = [
-  BaseCategoriesModule.new('basecategories', @mw),
+  BaseCategories.new('basecategories', @mw),
   HideMaintenanceCategories.new('maintenancecats', @mw),
   AddSelfToAdminsList.new('adminslist', @mw),
   Pagetitles.new('pagetitles', @mw),
@@ -153,6 +84,6 @@ end
 
 @modules.each do |mod|
   puts "Executing #{mod.name}"
-  mod.execute
+  # mod.execute
   puts "Finished #{mod.name}"
 end
