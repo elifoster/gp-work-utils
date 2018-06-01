@@ -16,6 +16,8 @@ Usage: `spinup <wiki name> [options]`
     -o to handle specific changes and checks for official wikis
     --skip to skip certain modules, see below for a list of modules. Format: --skip=module1,module2,module3 Module
       names cannot have spaces in them. Separate them by comma.
+    --only the inverse of --skip. When provided, --skip is not used. Specify the modules to execute explicitly. 
+      Format the same way as --skip.
 EOS
 
 if ARGV.size.zero? || ARGV[0] == 'help'
@@ -132,9 +134,22 @@ ALL_MODULES = [
   MoveHowToPlay.new('howtoplay', @mw)
 ]
 
-skip = ARGV.find { |opt| opt.start_with?('--skip=') }
-skips = skip ? skip.sub('--skip=', '').split(',') : []
-@modules = ALL_MODULES.delete_if { |mod| skips.include?(mod.name) || (!@is_official && mod.official_only?) }
+# @param name [String] The name of the parameter passed to the CLI
+# @return [Array<String>] The list of values provided to a --{name}= CLI argument. For example, if the user passed
+#   "--test=test1,test2,test3", this function when passed with 'test' would return an array of 'test1', 'test2', and
+#   'test3'. If no argument was provided for this parameter to the CLI, it returns an empty array, not nil.
+def get_csv_param(name)
+  param = ARGV.find { |opt| opt.start_with?("--#{name}=") }
+  param ? param.sub("--#{name}=", '').split(',') : []
+end
+
+skips = get_csv_param('skip')
+onlys = get_csv_param('only')
+if onlys.empty?
+  @modules = ALL_MODULES.delete_if { |mod| skips.include?(mod.name) || (!@is_official && mod.official_only?) }
+else
+  @modules = ALL_MODULES.delete_if { |mod| !onlys.include?(mod.name) || (!@is_official && mod.official_only?) }
+end
 
 @modules.each do |mod|
   puts "Executing #{mod.name}"
