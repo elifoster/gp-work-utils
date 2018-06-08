@@ -84,6 +84,6 @@ end
 
 @modules.each do |mod|
   puts "Executing #{mod.name}"
-  # mod.execute
+  mod.execute
   puts "Finished #{mod.name}"
 end
