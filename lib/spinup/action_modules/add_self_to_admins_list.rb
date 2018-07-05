@@ -5,7 +5,7 @@ class AddSelfToAdminsList < ActionModule
              admins_list.split("\n")
              .delete_if { |line| line.include?('delete this line during spin up') }
              .join("\n")
-             .sub('<!--{{Wiki admin|Game Widow}}-->', '{{Wiki admin|TheSatanicSanta}}'),
+             .sub('<!--{{Wiki admin|Game widow}}-->', '{{Wiki admin|TheSatanicSanta}}'),
              summary: 'Replacing curse admin with TheSatanicSanta.')
   end
 end
