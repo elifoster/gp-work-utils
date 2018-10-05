@@ -5,7 +5,7 @@ require 'net/http'
 require_relative '../lib/wiki_manager'
 
 # Helper method for checking if the URL should be opened with redirection following
-# @yieldparam The response body when it succeeds
+# @yieldparam The response when it succeeds
 # @yieldreturn Whether, given the body, it should be opened
 # @param url The URL string to check
 # @return Whether this should be opened
@@ -15,11 +15,11 @@ def should_open?(url, &block)
   when Net::HTTPRedirection
     location = resp['location']
     puts "Redirecting #{url} to #{location}"
-    should_open?(location) { |body| block.call(body) }
+    should_open?(location) { |resp1| block.call(resp1) }
   when Net::HTTPSuccess
-    block.call(resp.body)
+    block.call(resp)
   when Net::HTTPNotFound # TODO: Remove this once HYD-3621 is resolved
-    block.call(resp.body)
+    block.call(resp)
   else
     p url
     p resp.code
@@ -30,7 +30,9 @@ end
 WikiManager.open(ARGV[0]) do |url|
   if !ARGV[1]&.eql?('all') && ARGV[0].downcase.eql?('special:recentchanges')
     # The date headers are level 4 headers, and are the only ones displayed in the RecentChanges
-    should_open?(url) { |body| body.include?('<h4>') }
+    should_open?(url) { |resp| resp.body.include?('<h4>') }
+  elsif ARGV.include?('--no-empty')
+    should_open?(url) { |resp| !resp.code.eql?('404') }
   else
     true
   end
