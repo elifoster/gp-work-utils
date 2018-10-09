@@ -1,0 +1,20 @@
+#!/usr/bin/env ruby
+# encoding: utf-8
+
+# A script that deletes Template:Copyright Game and replaces its usages with Template:Copyright game
+
+require 'mediawiki/butt'
+require 'dotenv'
+
+Dotenv.load
+
+@mw = MediaWiki::Butt.new("https://#{ARGV[0]}.gamepedia.com/api.php")
+@mw.login(ENV['WIKI_USERNAME'], ENV['WIKI_PASSWORD'])
+
+transcluders = @mw.get_all_transcluders('Template:Copyright Game')
+transcluders.each do |page|
+  @mw.edit(page, @mw.get_text(page).gsub('{{Copyright Game}}', '{{Copyright game}}'), minor: true, bot: true,
+           summary: 'Replacing Copyright Game with Copyright game.')
+end
+
+@mw.delete('Template:Copyright Game', 'Replaced with Copyright game.')
