@@ -27,7 +27,8 @@ module ButtExtensions
       params = {
         action: 'parse',
         text: str,
-        disablelimitreport: true
+        disablelimitreport: true,
+        wrapoutputclass: ''
       }
       post(params)['parse']['text']['*']
     end
