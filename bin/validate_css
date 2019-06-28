@@ -1,0 +1,66 @@
+#!/usr/bin/env ruby
+# encoding: utf-8
+#
+# A simple script that runs the W3C CSS Validator on Common.css, Hydra.css, and Hydradark.css for a given wiki.
+# Provide the wiki name as the first argument, for example: `bin/validate_css wow`.
+# Will output all errors (red) and warnings (yellow) to stdout.
+
+require 'dotenv'
+require 'mediawiki/butt'
+require 'w3c_validators'
+require 'rainbow'
+
+include W3CValidators
+
+Dotenv.load
+
+def format_msg(msg)
+  str = "line #{msg.line}"
+  if msg.message && !msg.message.empty?
+    str << ": #{msg.message}"
+  end
+
+  return Rainbow(str).red if msg.type == :error
+  return Rainbow(str).yellow if msg.type == :warning
+  str
+end
+
+
+@mw = MediaWiki::Butt.new("https://#{ARGV[0]}.gamepedia.com/api.php", assertion: :bot)
+@mw.login(ENV['WIKI_USERNAME'], ENV['WIKI_PASSWORD'])
+
+@css_validator = CSSValidator.new
+
+CSS_PAGES = %w(MediaWiki:Common.css MediaWiki:Hydradark.css MediaWiki:Hydra.css)
+TMP_FILE = 'tmp/validation.css'
+
+
+CSS_PAGES.each do |page|
+  puts "Checking #{page}."
+  text = @mw.get_text(page)
+
+  if text.nil?
+    puts "#{page} is not a valid page. Skipping."
+    next
+  end
+
+  tmp = File.open(TMP_FILE, 'w')
+  tmp.write(text)
+  tmp.close
+
+  results = @css_validator.validate_file(File.expand_path('../..', __FILE__) + '/' + TMP_FILE)
+
+  File.delete(TMP_FILE)
+
+  puts page + ': ' + (results.validity ? Rainbow('Valid').green : Rainbow('Invalid').red)
+
+  results.errors.each do |msg|
+    puts format_msg(msg)
+  end
+
+  results.warnings.each do |msg|
+    puts format_msg(msg)
+  end
+
+  puts ''
+end
