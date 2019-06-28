@@ -25,6 +25,9 @@ def format_msg(msg)
   str
 end
 
+def format_line(lines, line)
+  "#{line}: #{lines[line.to_i - 1]}"
+end
 
 @mw = MediaWiki::Butt.new("https://#{ARGV[0]}.gamepedia.com/api.php", assertion: :bot)
 @mw.login(ENV['WIKI_USERNAME'], ENV['WIKI_PASSWORD'])
@@ -54,12 +57,18 @@ CSS_PAGES.each do |page|
 
   puts page + ': ' + (results.validity ? Rainbow('Valid').green : Rainbow('Invalid').red)
 
+  lines = text.lines
+
   results.errors.each do |msg|
     puts format_msg(msg)
+    puts format_line(lines, msg.line)
+    puts ''
   end
 
   results.warnings.each do |msg|
     puts format_msg(msg)
+    puts format_line(lines, msg.line)
+    puts ''
   end
 
   puts ''
