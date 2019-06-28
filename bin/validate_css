@@ -14,19 +14,24 @@ include W3CValidators
 
 Dotenv.load
 
-def format_msg(msg)
+def format_msg(msg, lines)
   str = "line #{msg.line}"
   if msg.message && !msg.message.empty?
     str << ": #{msg.message}"
   end
 
-  return Rainbow(str).red if msg.type == :error
-  return Rainbow(str).yellow if msg.type == :warning
-  str
-end
+  str = Rainbow(str).red if msg.type == :error
+  str = Rainbow(str).yellow if msg.type == :warning
+  str << "\n"
 
-def format_line(lines, line)
-  "#{line}: #{lines[line.to_i - 1]}"
+  # We have to #to_i because the arithmetic does not implicitly convert String to Number
+  line_i = msg.line.to_i
+  line_index = line_i - 1
+  str << "#{line_i - 1}: #{lines[line_index - 1]}"
+  str << "#{line_i}: #{lines[line_index]}"
+  str << "#{line_i + 1}: #{lines[line_index + 1]}\n"
+
+  str
 end
 
 @mw = MediaWiki::Butt.new("https://#{ARGV[0]}.gamepedia.com/api.php", assertion: :bot)
@@ -60,15 +65,11 @@ CSS_PAGES.each do |page|
   lines = text.lines
 
   results.errors.each do |msg|
-    puts format_msg(msg)
-    puts format_line(lines, msg.line)
-    puts ''
+    puts format_msg(msg, lines)
   end
 
   results.warnings.each do |msg|
-    puts format_msg(msg)
-    puts format_line(lines, msg.line)
-    puts ''
+    puts format_msg(msg, lines)
   end
 
   puts ''
