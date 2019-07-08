@@ -1,0 +1,32 @@
+#!/usr/bin/env ruby
+# encoding: utf-8
+#
+# A simple script that checks the querypages required for a spinup
+
+require 'dotenv'
+require 'mediawiki/butt'
+require 'rainbow'
+
+Dotenv.load
+
+@mw = MediaWiki::Butt.new("https://#{ARGV[0]}.gamepedia.com/api.php", assertion: :bot)
+@mw.login(ENV['WIKI_USERNAME'], ENV['WIKI_PASSWORD'])
+
+SPECIAL_PAGES = [
+  { page: 'Lonelypages', value: 0 },
+  { page: 'Wantedpages', value: 0 },
+  { page: 'Wantedtemplates', value: 0 },
+  { page: 'Wantedfiles', value: 0 },
+  { page: 'Wantedcategories', value: 0 },
+  { page: 'Uncategorizedcategories', value: 1 },
+  { page: 'Uncategorizedfiles', value: 0 },
+  { page: 'Uncategorizedpages', value: 0 },
+  { page: 'Uncategorizedtemplates', value: 0 },
+]
+
+SPECIAL_PAGES.each do |obj|
+  response = @mw.get_querypage(obj[:page])
+  puts "#{obj[:page]}: " + (response.count == obj[:value] ? Rainbow('✔').green : Rainbow('✘').red)
+  puts response.join("\n") if response.count > 0
+  puts
+end
