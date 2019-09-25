@@ -18,8 +18,8 @@ def should_open?(url, &block)
     should_open?(location) { |resp1| block.call(resp1) }
   when Net::HTTPSuccess
     block.call(resp)
-  when Net::HTTPNotFound # TODO: Remove this once HYD-3621 is resolved
-    block.call(resp)
+  when Net::HTTPNotFound
+    false
   else
     p url
     p resp.code
