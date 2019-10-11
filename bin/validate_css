@@ -39,7 +39,7 @@ end
 
 @css_validator = CSSValidator.new
 
-CSS_PAGES = %w(MediaWiki:Common.css MediaWiki:Hydradark.css MediaWiki:Hydra.css)
+CSS_PAGES = %w(MediaWiki:Common.css MediaWiki:Hydradark.css MediaWiki:Hydra.css MediaWiki:Mobile.css MediaWiki:Dark_mobile.css MediaWiki:Light_mobile.css)
 TMP_FILE = 'tmp/validation.css'
 
 
