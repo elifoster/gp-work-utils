@@ -37,6 +37,7 @@ require_relative '../lib/spinup/action_modules/hide_maintenance_categories'
 require_relative '../lib/spinup/action_modules/move_how_to_play'
 require_relative '../lib/spinup/action_modules/pagetitles'
 require_relative '../lib/spinup/action_modules/edit_support'
+require_relative '../lib/spinup/action_modules/main_page_talk'
 
 Dotenv.load
 using ButtExtensions
@@ -64,7 +65,8 @@ ALL_MODULES = [
   AddSelfToAdminsList.new('adminslist', @mw),
   Pagetitles.new('pagetitles', @mw),
   MoveHowToPlay.new('howtoplay', @mw),
-  EditSupport.new('editsupport', @mw)
+  EditSupport.new('editsupport', @mw),
+  MainPageTalk.new('mainpagetalk', @mw)
 ]
 
 # @param name [String] The name of the parameter passed to the CLI
