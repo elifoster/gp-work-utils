@@ -20,6 +20,7 @@ PLATFORMS
 DEPENDENCIES
   dotenv (~> 2.2)
   mediawiki-butt (~> 3.0)
+  nokogiri (~> 1.10)
   rainbow (~> 3.0)
   w3c_validators (~> 1.3)
 

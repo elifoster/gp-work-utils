@@ -1,8 +1,12 @@
 #!/usr/bin/env ruby
 # encoding: utf-8
 
+require 'dotenv'
 require 'net/http'
+require 'nokogiri'
 require_relative '../lib/wiki_manager'
+
+Dotenv.load
 
 # Helper method for checking if the URL should be opened with redirection following
 # @yieldparam The response when it succeeds
@@ -29,8 +33,17 @@ end
 
 WikiManager.open(ARGV[0]) do |url|
   if !ARGV[1]&.eql?('all') && ARGV[0].downcase.eql?('special:recentchanges')
-    # The date headers are level 4 headers, and are the only ones displayed in the RecentChanges
-    should_open?(url) { |resp| resp.body.include?('<h4>') }
+    should_open?(url) do |resp|
+      # The date headers are level 4 headers, and are the only ones displayed in the RecentChanges
+      if resp.body.include?('<h4>')
+        # If the only a.mw-userlink is for the bot administrator, skip this wiki.
+        doc = Nokogiri::HTML(resp.body)
+        userlinks = doc.css('a.mw-userlink')
+        !userlinks.detect { |a| a.inner_text != ENV['BOT_ADMINISTRATOR']}.nil?
+      else
+        false
+      end
+    end
   elsif ARGV.include?('--no-empty')
     should_open?(url) { |resp| !resp.code.eql?('404') }
   else

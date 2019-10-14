@@ -4,6 +4,7 @@ To set up, you must create a `.env` file in the project root:
 ```
 WIKI_USERNAME: Username
 WIKI_PASSWORD: Password
+BOT_ADMINISTRATOR: Username
 ```
 
 You must have a `wikis.txt` file in the project root. This file lists wiki names, for which the rest of the URL is 
