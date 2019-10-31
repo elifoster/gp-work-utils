@@ -15,9 +15,9 @@ class HideMaintenanceCategories < ActionModule
   def execute
     CATEGORIES.each do |category|
       title = "Category:#{category}"
-      text = @mw.get_text(title)
+      text = mw.get_text(title)
       text << "\n__HIDDENCAT__"
-      @mw.edit(title, text, summary: 'Hiding category.')
+      mw.edit(title, text, summary: 'Hiding category.')
     end
   end
 end
