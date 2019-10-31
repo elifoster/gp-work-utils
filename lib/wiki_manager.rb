@@ -9,14 +9,15 @@ class WikiManager
     end
     puts 'Finished filtering, now opening'
     slices = to_open.each_slice(10)
+    num_batches = slices.size - 1
     slices.with_index do |batch, index|
       batch.each do |url|
         `open #{url}`
       end
-      if index != (slices.size - 1)
+      if index != num_batches
         puts 'Please press enter to open next set'
         # Suspend opening next set until user presses enter
-        $stdin.gets unless index == (slices.size - 1)
+        $stdin.gets unless index == num_batches
       end
     end
   end
