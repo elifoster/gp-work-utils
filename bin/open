@@ -1,6 +1,14 @@
 #!/usr/bin/env ruby
 # encoding: utf-8
 
+# Script that allows you to open 1 page on all wikis in the wikis.txt file
+# Arguments:
+#   * 1st parameter must be the page, with no spaces (use _)
+#     * If it is Special:RecentChanges, then
+#   * --all: Open all wikis, even if there is an error
+#   * --no-empty: Skip wikis which return a 404
+#   * --no-redirect: Skip wikis whose page is a redirect (not a HTTPRedirection, but a #REDIRECT wiki page)
+
 require 'dotenv'
 require 'net/http'
 require 'nokogiri'
@@ -32,21 +40,29 @@ def should_open?(url, &block)
 end
 
 WikiManager.open(ARGV[0]) do |url|
-  if !ARGV[1]&.eql?('all') && ARGV[0].downcase.eql?('special:recentchanges')
-    should_open?(url) do |resp|
+  next true if ARGV.include?('--all')
+
+  should_open?(url) do |resp|
+    if ARGV[0].downcase.eql?('special:recentchanges')
       # The date headers are level 4 headers, and are the only ones displayed in the RecentChanges
       if resp.body.include?('<h4>')
         # If the only a.mw-userlink is for the bot administrator, skip this wiki.
         doc = Nokogiri::HTML(resp.body)
         userlinks = doc.css('a.mw-userlink')
-        !userlinks.detect { |a| a.inner_text != ENV['BOT_ADMINISTRATOR']}.nil?
+        break !userlinks.detect { |a| a.inner_text != ENV['BOT_ADMINISTRATOR']}.nil?
       else
-        false
+        break false
+      end
+    else
+      if ARGV.include?('--no-empty')
+        break false if resp.code.eql?('404')
+      end
+      if ARGV.include?('--no-redirect')
+        # In the page script, there is a line which sets all the mw.config values. If the page is a redirect, then
+        # this response will be for the page *redirected to*, and will, as such, include the wgRedirectedFrom var.
+        break false if resp.body.include?('wgRedirectedFrom')
       end
     end
-  elsif ARGV.include?('--no-empty')
-    should_open?(url) { |resp| !resp.code.eql?('404') }
-  else
-    true
+    break true
   end
 end
