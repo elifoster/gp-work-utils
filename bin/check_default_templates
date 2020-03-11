@@ -1,0 +1,35 @@
+#!/usr/bin/env ruby
+# encoding: utf-8
+#
+# Script that checks the main default templates on the wiki, for transferred wiki reviews
+#
+# Usage: bin/check_default_templates <wiki name>
+
+require 'dotenv'
+require 'mediawiki/butt'
+require 'rainbow'
+
+Dotenv.load
+
+@mw_main = MediaWiki::Butt.new("https://#{ARGV[0]}.gamepedia.com/api.php", assertion: :bot)
+@mw_main.login(ENV['WIKI_USERNAME'], ENV['WIKI_PASSWORD'])
+
+@mw_default = MediaWiki::Butt.new('https://default-loadout-en.gamepedia.com/api.php', assertion: :bot)
+@mw_default.login(ENV['WIKI_USERNAME'], ENV['WIKI_PASSWORD'])
+
+TEMPLATE_LIST = File.readlines('default_templates.txt').map(&:chomp)
+
+def check(template)
+  template_main = @mw_main.get_text("Template:#{template}")
+  template_default = @mw_default.get_text("Template:#{template}")
+  if template_main.eql?(template_default)
+    Rainbow('✔').green
+  else
+    template_main.nil? ? Rainbow('?').silver : Rainbow('✘').red
+  end
+end
+
+TEMPLATE_LIST.each do |template|
+  puts "Template:#{template} " + check(template)
+  puts "Template:#{template}/doc " + check("#{template}/doc")
+end
