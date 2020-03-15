@@ -3,7 +3,7 @@
 #
 # Script that checks the main default templates on the wiki, for transferred wiki reviews
 #
-# Usage: bin/check_default_templates <wiki name>
+# Usage: bin/check_default_templates <wiki name> [language code]
 
 require 'dotenv'
 require 'mediawiki/butt'
@@ -11,13 +11,23 @@ require 'rainbow'
 
 Dotenv.load
 
-@mw_main = MediaWiki::Butt.new("https://#{ARGV[0]}.gamepedia.com/api.php", assertion: :bot)
+wiki_main = ARGV[0].dup
+wiki_default = 'defalut-loadout-en'
+filename = 'default_templates.txt'
+
+if ARGV[1]
+  wiki_main << "-#{ARGV[1]}"
+  wiki_default = "default-loadout-#{ARGV[1]}"
+  filename = "default_templates_#{ARGV[1]}.txt"
+end
+
+@mw_main = MediaWiki::Butt.new("https://#{wiki_main}.gamepedia.com/api.php", assertion: :bot)
 @mw_main.login(ENV['WIKI_USERNAME'], ENV['WIKI_PASSWORD'])
 
-@mw_default = MediaWiki::Butt.new('https://default-loadout-en.gamepedia.com/api.php', assertion: :bot)
+@mw_default = MediaWiki::Butt.new("https://#{wiki_default}.gamepedia.com/api.php", assertion: :bot)
 @mw_default.login(ENV['WIKI_USERNAME'], ENV['WIKI_PASSWORD'])
 
-TEMPLATE_LIST = File.readlines('default_templates.txt').map(&:chomp)
+TEMPLATE_LIST = File.readlines(filename).map(&:chomp)
 
 def check(template)
   template_main = @mw_main.get_text("Template:#{template}")
