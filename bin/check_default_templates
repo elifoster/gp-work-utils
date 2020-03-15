@@ -12,7 +12,7 @@ require 'rainbow'
 Dotenv.load
 
 wiki_main = ARGV[0].dup
-wiki_default = 'defalut-loadout-en'
+wiki_default = 'default-loadout-en'
 filename = 'default_templates.txt'
 
 if ARGV[1]
