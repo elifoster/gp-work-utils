@@ -53,6 +53,8 @@ WikiManager.open(ARGV[0]) do |url|
       else
         break false
       end
+    elsif ARGV[0].downcase.eql?('special:wikipoints/monthly')
+      break false if resp.body.include?('No results found')
     else
       if ARGV.include?('--no-empty')
         break false if resp.code.eql?('404')
