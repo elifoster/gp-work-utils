@@ -7,12 +7,10 @@
 
 require 'mediawiki/butt'
 require 'dotenv'
-require_relative '../lib/butt_extensions'
 
 LAST_FILE = 'tmp/patrol_ms_last.txt'
 
 Dotenv.load
-using ButtExtensions
 
 @mw = MediaWiki::Butt.new("https://#{ARGV[0]}.gamepedia.com/api.php")
 @mw.login(ENV['WIKI_USERNAME'], ENV['WIKI_PASSWORD'])
@@ -28,9 +26,10 @@ begin
   contribs.each do |contrib|
     next if @last_success != '' && contrib[:revid] < @last_success.to_i
     puts "Patrolling #{contrib[:title]}"
-    patrol = @mw.patrol(revid: contrib[:revid])
-    if patrol['error']
-      puts "#{patrol['error']['code']}: #{patrol['error']['info']}"
+    begin
+      @mw.patrol(revid: contrib[:revid])
+    rescue MediaWiki::Butt::PatrolError => e
+      puts e.message
     else
       @last_success = contrib[:revid]
     end
