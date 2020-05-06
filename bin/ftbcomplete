@@ -1,0 +1,42 @@
+#!/usr/bin/env ruby
+# encoding: utf-8
+
+DOCS = <<EOF
+This command is used to determine the "completeness" of a particular mod.
+It outputs a percentage based on the number of red links in its mod page.
+
+Usage:
+    ftbcomplete <mod name>
+EOF
+
+if ARGV.size.zero? || ARGV[0] == 'help'
+  print DOCS
+  exit
+end
+
+require 'dotenv'
+require 'mediawiki/butt'
+require_relative '../lib/wiki_manager'
+
+Dotenv.load
+
+@mw = MediaWiki::Butt.new("https://ftb.gamepedia.com/api.php", assertion: :bot, use_continuation: true, query_limit_default: 'max')
+@mw.login(ENV['WIKI_USERNAME'], ENV['WIKI_PASSWORD'])
+
+links = @mw.get_all_links_in_page(ARGV[0])
+red_links = links.select { |link| @mw.get_id(link).nil? }
+navboxes = links.select { |link| link.start_with?('Template:Navbox') }
+navboxes.each do |nav|
+  if @mw.get_text(nav)&.include?('/Lazy|')
+    nav_links = @mw.get_all_links_in_page("#{nav}/content")
+    links += nav_links
+    red_links += nav_links.select { |link| @mw.get_id(link).nil? }
+  end
+end
+percent_red = (red_links.count.to_f / links.count * 100).round
+# If the page is missing its navbox, its completion percent is reduced by 50%, or if it is already less than 50% it reduces to a floor of 10%.
+if !red_links.select { |link| link.start_with?('Template:Navbox') }.empty?
+  percent_red = percent_red < 50 ? percent_red + 50 : 90
+end
+
+puts "#{ARGV[0]}: #{100 - percent_red}%"
