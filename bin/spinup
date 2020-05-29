@@ -5,7 +5,6 @@
 # - story management
 # - Setting forward on mw interwiki prefix
 # - Checking gphelp interwiki prefix is correct (forward and transclude set, uses HTTPS)
-# - Adding to wikis.txt
 
 DOCS = <<EOS
 A script that handles some base actions for spinning up a wiki.
@@ -31,6 +30,7 @@ require_relative '../lib/butt_extensions'
 require_relative '../lib/spinup/action_module'
 
 require_relative '../lib/spinup/action_modules/add_self_to_admins_list'
+require_relative '../lib/spinup/action_modules/add_to_wiki_list'
 require_relative '../lib/spinup/action_modules/base_categories'
 require_relative '../lib/spinup/action_modules/hide_maintenance_categories'
 require_relative '../lib/spinup/action_modules/move_how_to_play'
@@ -65,7 +65,8 @@ ALL_MODULES = [
   Pagetitles.new('pagetitles', @mw),
   MoveHowToPlay.new('howtoplay', @mw),
   MainPageTalk.new('mainpagetalk', @mw),
-  ProtectCopyrightPages.new('protectcopy', @mw)
+  ProtectCopyrightPages.new('protectcopy', @mw),
+  AddToWikiList.new('addtowikilist', @mw)
 ]
 
 # @param name [String] The name of the parameter passed to the CLI
