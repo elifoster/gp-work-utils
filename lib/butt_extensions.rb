@@ -14,5 +14,21 @@ module ButtExtensions
       }
       post(params)['parse']['text']['*']
     end
+
+    # Cascade-protects a page for editing and moving at sysop level, with no expiry, and a summary of "High traffic page"
+    # @param page [String] The page to protect
+    # @return (see #post)
+    def protect(page)
+      params = {
+        action: 'protect',
+        title: page,
+        cascade: true,
+        protections: 'edit=sysop|move=sysop',
+        expiry: 'never|never',
+        reason: 'High traffic page',
+        token: get_token
+      }
+      post(params)
+    end
   end
 end

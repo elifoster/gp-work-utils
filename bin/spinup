@@ -6,7 +6,6 @@
 # - Setting forward on mw interwiki prefix
 # - Checking gphelp interwiki prefix is correct (forward and transclude set, uses HTTPS)
 # - Adding to wikis.txt
-# - protecting legal notices
 
 DOCS = <<EOS
 A script that handles some base actions for spinning up a wiki.
@@ -36,6 +35,7 @@ require_relative '../lib/spinup/action_modules/base_categories'
 require_relative '../lib/spinup/action_modules/hide_maintenance_categories'
 require_relative '../lib/spinup/action_modules/move_how_to_play'
 require_relative '../lib/spinup/action_modules/pagetitles'
+require_relative '../lib/spinup/action_modules/protect_copyright_pages'
 require_relative '../lib/spinup/action_modules/main_page_talk'
 
 Dotenv.load
@@ -64,7 +64,8 @@ ALL_MODULES = [
   AddSelfToAdminsList.new('adminslist', @mw),
   Pagetitles.new('pagetitles', @mw),
   MoveHowToPlay.new('howtoplay', @mw),
-  MainPageTalk.new('mainpagetalk', @mw)
+  MainPageTalk.new('mainpagetalk', @mw),
+  ProtectCopyrightPages.new('protectcopy', @mw)
 ]
 
 # @param name [String] The name of the parameter passed to the CLI
